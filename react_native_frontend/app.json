@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "react_native_frontend",
-    "slug": "react_native_frontend",
+    "slug": "animefy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,10 +24,17 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.raidenblackout.animefy"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d35381ab-0973-462e-99d4-e4ff8979fb64"
+      }
+    },
+    "owner": "raidenblackout"
   }
 }
