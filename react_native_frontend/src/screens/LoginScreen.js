@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet, Text, Image } from 'react-native';
 import app from '../configs/firebaseConfig';
 import {getAuth, signInWithEmailAndPassword} from "firebase/auth";
+import { StackActions } from '@react-navigation/native';
 const LoginScreen = (props) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -21,7 +22,9 @@ const LoginScreen = (props) => {
             try {
                 const auth = getAuth(app);
                 const userCredential = await signInWithEmailAndPassword(auth,username, password);
-                props.navigation.navigate('Home', { user: userCredential });
+                props.navigation.dispatch(
+                    StackActions.replace('Home'
+                ));
             } catch (error) {
                 console.log(error);
             }
@@ -54,7 +57,7 @@ const LoginScreen = (props) => {
             
             <Text style={styles.signupText}>
                 Don't have an account?{' '}
-                <Text style={styles.signupButton} onPress={() => console.log('Signup button pressed')}>
+                <Text style={styles.signupButton} onPress={() => props.navigation.navigate('SignUp')}>
                     Sign up
                 </Text>
             </Text>

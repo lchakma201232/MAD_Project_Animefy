@@ -3,14 +3,18 @@ import * as FileSystem from 'expo-file-system';
 import React, { useState, useEffect } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-// import { Permission } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import { useNavigation } from '@react-navigation/native';
+import { getAuth, signOut } from "firebase/auth";
 export default function HomeScreen(props) {
+    
     const navigation = useNavigation();
-    const user = props.route.params.user;
+    const auth = getAuth();
+    const user = auth.currentUser;
+    
     console.log(user)
+    
     React.useEffect(() => {
         navigation.setOptions({
             title: 'Home',
