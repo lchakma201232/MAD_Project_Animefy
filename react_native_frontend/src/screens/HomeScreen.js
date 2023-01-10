@@ -1,24 +1,42 @@
 import { Camera, CameraType } from 'expo-camera';
 import * as FileSystem from 'expo-file-system';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 // import { Permission } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
-import React from 'react';
-export default function HomeScreen() {
+import { useNavigation } from '@react-navigation/native';
+export default function HomeScreen(props) {
+    const navigation = useNavigation();
+    const user = props.route.params.user;
+    console.log(user)
+    React.useEffect(() => {
+        navigation.setOptions({
+            title: 'Home',
+            headerStyle: {
+                backgroundColor: '#14511e',
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+                fontWeight: 'normal',
+            },
+            headerRight: () => (
+                <Text style={{ color: 'white', marginRight: 10, fontSize: 20 }}>{
+                    user.displayName
+                }</Text>
+            ),
+        });
+    }, [navigation]);
     const [type, setType] = useState(CameraType.back);
     const [permission, requestPermission] = Camera.useCameraPermissions();
     const cameraRef = React.useRef(null);
     const [image, setImage] = useState(null);
     const [imageLoading, setImageLoading] = useState(false);
-    const [imageBase64, setImageBase64] = useState(null);
-    // useEffect(() => {
-    //     setImageLoading(false);
-    // }, [image]);
+    
+    // alert(user)
+
     if (!permission) {
-        // Camera permissions are still loading
         return <View />;
     }
 
@@ -85,12 +103,6 @@ export default function HomeScreen() {
         }
     }
     async function chooseImage() {
-        //ask for permission
-        // const { status } = await ImagePicker.requestCameraRollPermissionsAsync();
-        // if (status !== 'granted') {
-        //     alert('Sorry, we need camera roll permissions to make this work!');
-        //     return;
-        // }
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet, Text, Image } from 'react-native';
-
+import app from '../configs/firebaseConfig';
+import {getAuth, signInWithEmailAndPassword} from "firebase/auth";
 const LoginScreen = (props) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [emptyUsername, setEmptyUsername] = useState(false);
     const [emptyPassword, setEmptyPassword] = useState(false);
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         if (username === '') {
             setEmptyUsername(true);
         }
@@ -15,11 +16,18 @@ const LoginScreen = (props) => {
             setEmptyPassword(true);
         }
         if (username !== '' && password !== '') {
-            console.log('Valid login');
             setEmptyUsername(false);
             setEmptyPassword(false);
+            try {
+                const auth = getAuth(app);
+                const userCredential = await signInWithEmailAndPassword(auth,username, password);
+                props.navigation.navigate('Home', { user: userCredential });
+            } catch (error) {
+                console.log(error);
+            }
         }
     };
+    
 
     return (
         <View style={styles.container}>
