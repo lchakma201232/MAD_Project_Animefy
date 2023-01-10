@@ -7,14 +7,25 @@ import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import { useNavigation } from '@react-navigation/native';
 import { getAuth, signOut } from "firebase/auth";
+import RightSidebar from '../modals/RightSidebar';
+import {useIsFocused} from '@react-navigation/native';
 export default function HomeScreen(props) {
-    
+    const isFocused = useIsFocused();
+    const [hasPermission, setHasPermission] = useState(null);
+    const [type, setType] = useState(Camera.Constants.Type.back);
+    const cameraRef = React.useRef(null);
+    const [image, setImage] = useState(null);
+    const [imageLoading, setImageLoading] = useState(false);
     const navigation = useNavigation();
     const auth = getAuth();
     const user = auth.currentUser;
-    
+    useEffect(() => {
+        (async () => {
+            const { status } = await Camera.requestCameraPermissionsAsync();
+            setHasPermission(status === 'granted');
+        })();
+    }, []);
     console.log(user)
-    
     React.useEffect(() => {
         navigation.setOptions({
             title: 'Home',
@@ -26,36 +37,37 @@ export default function HomeScreen(props) {
                 fontWeight: 'normal',
             },
             headerRight: () => (
-                <Text style={{ color: 'white', marginRight: 10, fontSize: 20 }}>{
-                    user.displayName
-                }</Text>
+                <View>
+                    <TouchableOpacity onPress={() => props.navigation.navigate('ImageGallery')}>
+                        <MaterialCommunityIcons name="image-multiple" size={24} color="white" style={{ marginRight: 10 }} />
+                    </TouchableOpacity>
+                </View>
             ),
         });
+        // loadImages();
     }, [navigation]);
-    const [type, setType] = useState(CameraType.back);
-    const [permission, requestPermission] = Camera.useCameraPermissions();
-    const cameraRef = React.useRef(null);
-    const [image, setImage] = useState(null);
-    const [imageLoading, setImageLoading] = useState(false);
-    
-    // alert(user)
-
-    if (!permission) {
+    if (hasPermission === null) {
         return <View />;
     }
-
-    if (!permission.granted) {
-        // Camera permissions are not granted yet
-        return (
-            <View style={styles.container}>
-                <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
-                <Button onPress={requestPermission} title="grant permission" />
-            </View>
-        );
+    if (hasPermission === false) {
+        return <Text>No access to camera</Text>;
     }
-
     function toggleCameraType() {
         setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
+    }
+    async function saveImage() {
+        if (image) {
+            //ask for permission
+            const { status } = await MediaLibrary.requestPermissionsAsync();
+            if (status !== 'granted') {
+                alert('Sorry, we need camera roll permissions to make this work!');
+                return;
+            } else {
+                const asset = await MediaLibrary.createAssetAsync(image);
+                await MediaLibrary.createAlbumAsync('AnimeGAN', asset, false);
+                alert('Image saved at AnimeGAN album');
+            }
+        }
     }
     async function capture() {
         if (cameraRef.current) {
@@ -82,39 +94,23 @@ export default function HomeScreen(props) {
             const data = await response.json();
             console.log(data);
             const base64Image = data.data[0].split(',')[1];
-            setImageBase64(base64Image);
             const curr_time_since_epoch = Date.now();
             const uri = FileSystem.cacheDirectory + curr_time_since_epoch + '.jpg';
             await FileSystem.writeAsStringAsync(uri, base64Image, { encoding: 'base64' });
             setImage(uri);
             setImageLoading(false);
+            props.navigation.navigate('Preview', { image: uri });
         }
     }
-    async function saveImage() {
-        if (image) {
-            //ask for permission
-            const { status } = await MediaLibrary.requestPermissionsAsync();
-            if (status !== 'granted') {
-                alert('Sorry, we need camera roll permissions to make this work!');
-                return;
 
-
-            } else {
-                const asset = await MediaLibrary.createAssetAsync(image);
-                await MediaLibrary.createAlbumAsync('AnimeGAN', asset, false);
-                alert('Image saved at AnimeGAN album');
-            }
-        }
-    }
     async function chooseImage() {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
-            aspect: [4, 3],
             quality: 1,
         });
         console.log(result);
-        if (!result.cancelled) {
+        if (!result.canceled) {
             console.log('capturing');
             setImage(result.assets[0].uri);
             const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: 'base64' });
@@ -138,42 +134,22 @@ export default function HomeScreen(props) {
             const data = await response.json();
             console.log(data);
             const base64Image = data.data[0].split(',')[1];
-            setImageBase64(base64Image);
+            // setImageBase64(base64Image);
             const curr_time_since_epoch = Date.now();
             const uri = FileSystem.cacheDirectory + curr_time_since_epoch + '.jpg';
             await FileSystem.writeAsStringAsync(uri, base64Image, { encoding: 'base64' });
             setImage(uri);
+            // saveImage();
             setImageLoading(false);
+            props.navigation.navigate('Preview', { image: uri });
         }
     }
 
     if (imageLoading) return <Text>Loading...</Text>
-    if (image) {
-        return (
-            <View style={styles.container2}>
-                <View style={styles.container}>
-                    <View style={styles.container3}>
-                        <Image source={{ uri: image }} style={styles.imageContainer} />
-                    </View>
-                    <TouchableOpacity style={styles.button2} onPress={() => setImage(null)}>
-                        {/* //go back to camera */}
-                        <MaterialCommunityIcons name="camera" size={32} color="#000" />
-
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.button2} onPress={saveImage}>
-                        {/* //save image */}
-                        <MaterialCommunityIcons name="content-save" size={32} color="#000" />
-                    </TouchableOpacity>
-
-                    {/* </View> */}
-                </View>
-            </View>
-        );
-    }
     return (
         <View style={styles.mainContainer}>
-            {/* {image && <Image source={{ uri: image }}/>} */}
-            <Camera style={styles.camera} type={type} ref={cameraRef}>
+
+            {isFocused && <Camera style={styles.camera} type={type} ref={cameraRef}>
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
                         <MaterialCommunityIcons name="camera-switch" size={32} color="#fff" />
@@ -186,7 +162,7 @@ export default function HomeScreen(props) {
                     </TouchableOpacity>
 
                 </View>
-            </Camera>
+            </Camera>}
         </View>
     );
 }
