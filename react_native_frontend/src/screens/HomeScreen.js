@@ -5,27 +5,26 @@ import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-n
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { getAuth, signOut } from "firebase/auth";
-import RightSidebar from '../modals/RightSidebar';
-import {useIsFocused} from '@react-navigation/native';
+import IconTray from '../components/IconTray';
+import { Animefy } from '../helpers/HelperFunctions';
+import Loader from '../components/Loader';
+import PlaceholderView from '../components/PlaceholderView';
 export default function HomeScreen(props) {
     const isFocused = useIsFocused();
     const [hasPermission, setHasPermission] = useState(null);
+    const [imageLoading, setImageLoading] = useState(false);
+    const [image, setImage] = useState(null);
     const [type, setType] = useState(Camera.Constants.Type.back);
     const cameraRef = React.useRef(null);
-    const [image, setImage] = useState(null);
-    const [imageLoading, setImageLoading] = useState(false);
     const navigation = useNavigation();
-    const auth = getAuth();
-    const user = auth.currentUser;
     useEffect(() => {
         (async () => {
             const { status } = await Camera.requestCameraPermissionsAsync();
             setHasPermission(status === 'granted');
         })();
     }, []);
-    console.log(user)
     React.useEffect(() => {
         navigation.setOptions({
             title: 'Home',
@@ -44,7 +43,6 @@ export default function HomeScreen(props) {
                 </View>
             ),
         });
-        // loadImages();
     }, [navigation]);
     if (hasPermission === null) {
         return <View />;
@@ -55,54 +53,19 @@ export default function HomeScreen(props) {
     function toggleCameraType() {
         setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
     }
-    async function saveImage() {
-        if (image) {
-            //ask for permission
-            const { status } = await MediaLibrary.requestPermissionsAsync();
-            if (status !== 'granted') {
-                alert('Sorry, we need camera roll permissions to make this work!');
-                return;
-            } else {
-                const asset = await MediaLibrary.createAssetAsync(image);
-                await MediaLibrary.createAlbumAsync('AnimeGAN', asset, false);
-                alert('Image saved at AnimeGAN album');
-            }
-        }
-    }
     async function capture() {
         if (cameraRef.current) {
             console.log('capturing...')
             const photo = await cameraRef.current.takePictureAsync();
-            const base64 = await FileSystem.readAsStringAsync(photo.uri, { encoding: 'base64' });
+            setImage(photo.uri)
             setImageLoading(true);
+            const base64 = await FileSystem.readAsStringAsync(photo.uri, { encoding: 'base64' });
             const url = 'https://akhaliq-animeganv2.hf.space/api/predict';
-            const json = {
-                "data": [
-                    "data:image/jpeg;base64," + base64,
-                    "version 2"
-                ]
-            }
-            console.log('sending...')
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(json),
-            });
-            console.log('receiving...')
-            const data = await response.json();
-            console.log(data);
-            const base64Image = data.data[0].split(',')[1];
-            const curr_time_since_epoch = Date.now();
-            const uri = FileSystem.cacheDirectory + curr_time_since_epoch + '.jpg';
-            await FileSystem.writeAsStringAsync(uri, base64Image, { encoding: 'base64' });
-            setImage(uri);
+            const uri = await Animefy(base64, url, 'version 2');
             setImageLoading(false);
             props.navigation.navigate('Preview', { image: uri });
         }
     }
-
     async function chooseImage() {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -112,56 +75,24 @@ export default function HomeScreen(props) {
         console.log(result);
         if (!result.canceled) {
             console.log('capturing');
-            setImage(result.assets[0].uri);
-            const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: 'base64' });
             setImageLoading(true);
+            const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: 'base64' });
             const url = 'https://akhaliq-animeganv2.hf.space/api/predict';
-            const json = {
-                "data": [
-                    "data:image/jpeg;base64," + base64,
-                    "version 2"
-                ]
-            }
-            console.log('sending...')
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(json),
-            });
-            console.log('receiving...')
-            const data = await response.json();
-            console.log(data);
-            const base64Image = data.data[0].split(',')[1];
-            // setImageBase64(base64Image);
-            const curr_time_since_epoch = Date.now();
-            const uri = FileSystem.cacheDirectory + curr_time_since_epoch + '.jpg';
-            await FileSystem.writeAsStringAsync(uri, base64Image, { encoding: 'base64' });
-            setImage(uri);
-            // saveImage();
+            const uri = await Animefy(base64, url, 'version 2');
             setImageLoading(false);
             props.navigation.navigate('Preview', { image: uri });
         }
     }
 
-    if (imageLoading) return <Text>Loading...</Text>
+    if (imageLoading) return (
+        <View style={styles.mainContainer}>
+            <PlaceholderView uri={image} />
+            <Loader loading={true} />
+        </View>);
     return (
         <View style={styles.mainContainer}>
-
             {isFocused && <Camera style={styles.camera} type={type} ref={cameraRef}>
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
-                        <MaterialCommunityIcons name="camera-switch" size={32} color="#fff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.button} onPress={capture}>
-                        <MaterialCommunityIcons name="camera" size={32} color="#fff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.button} onPress={chooseImage}>
-                        <MaterialCommunityIcons name="image" size={32} color="#fff" />
-                    </TouchableOpacity>
-
-                </View>
+                <IconTray type='camera' capture={capture} chooseImage={chooseImage} toggleCameraType={toggleCameraType} />
             </Camera>}
         </View>
     );
@@ -176,25 +107,19 @@ const styles = StyleSheet.create({
 
     },
     container: {
-        // flex: 1
         justifyContent: 'center',
         alignItems: 'center',
-        // height: '100%',
-        // height: '100%',
         width: 400,
         height: 400,
 
     },
     container3: {
-        // margin: 64,
         backgroundColor: 'black',
         justifyContent: 'center',
         alignItems: 'center',
-        // width: 400
         width: '100%',
     },
     container2: {
-        // flex: 2,
         flex: 1,
         justifyContent: 'center',
         alignContent: 'center',
@@ -226,7 +151,6 @@ const styles = StyleSheet.create({
         color: 'white',
     },
     imageContainer: {
-        // flex: 1,
         width: 300,
         height: 300,
     },
