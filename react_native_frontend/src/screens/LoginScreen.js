@@ -1,29 +1,49 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet, Text, Image } from 'react-native';
 
-const LoginScreen = () => {
+const LoginScreen = (props) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [emptyUsername, setEmptyUsername] = useState(false);
+    const [emptyPassword, setEmptyPassword] = useState(false);
+
+    const handleLogin = () => {
+        if (username === '') {
+            setEmptyUsername(true);
+        }
+        if (password === '') {
+            setEmptyPassword(true);
+        }
+        if (username !== '' && password !== '') {
+            console.log('Valid login');
+            setEmptyUsername(false);
+            setEmptyPassword(false);
+        }
+    };
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Welcome to My App</Text>
+            {(emptyUsername || emptyPassword) && (
+                <Text style={styles.errorText}>Invalid login</Text>
+            )}
             <TextInput
-                style={styles.input}
+                style={[styles.input, emptyUsername && styles.inputError]}
                 placeholder="Username"
                 onChangeText={(text) => setUsername(text)}
                 value={username}
             />
             <TextInput
-                style={styles.input}
+                style={[styles.input, emptyPassword && styles.inputError]}
                 placeholder="Password"
                 onChangeText={(text) => setPassword(text)}
                 value={password}
                 secureTextEntry
             />
-            <TouchableOpacity style={styles.button} onPress={() => console.log('Login button pressed')}>
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
                 <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
+            
             <Text style={styles.signupText}>
                 Don't have an account?{' '}
                 <Text style={styles.signupButton} onPress={() => console.log('Signup button pressed')}>
@@ -57,6 +77,9 @@ const styles = StyleSheet.create({
         marginTop: 8,
         paddingHorizontal: 10,
     },
+    inputError: {
+        borderColor: 'red',
+    },
     button: {
         backgroundColor: 'blue',
         padding: 16,
@@ -68,6 +91,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
     },
+    errorText: {
+        color: 'red',
+        marginTop: 8,
+    },
     signupText: {
         marginTop: 10,
     },
@@ -76,4 +103,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default LoginScreen;
+export default LoginScreen
