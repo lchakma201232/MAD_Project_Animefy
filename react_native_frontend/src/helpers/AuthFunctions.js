@@ -30,15 +30,6 @@ async function getImages(user){
     );
     return images;
 }
-async function addCredit(amount){
-    const auth = getAuth(app);
-    const user = auth.currentUser;
-    const db = getFirestore(app);
-    const docref = await addDoc(collection(db,"users", user.uid, "credit"), {
-        credit: amount,
-    }
-    );
-}
 
 async function addUser(user){
     const db = getFirestore(app);
@@ -57,4 +48,4 @@ async function  updateCredit(user, credit){
     });
 }
 
-export {checkCredit, addImage, addCredit, getImages, addUser, updateCredit};
+export {checkCredit, addImage, getImages, addUser, updateCredit};

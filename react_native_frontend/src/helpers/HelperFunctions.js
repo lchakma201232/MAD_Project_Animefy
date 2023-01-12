@@ -7,8 +7,8 @@ import {
   getImages,
   addImage,
 } from "./AuthFunctions";
-import app from "../configs/firebaseConfig";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+// import app from "../configs/firebaseConfig";
+// import { getAuth, onAuthStateChanged } from "firebase/auth";
 async function Animefy(base64, url, version, user) {
   const json = {
     data: ["data:image/jpeg;base64," + base64, version],
@@ -21,19 +21,14 @@ async function Animefy(base64, url, version, user) {
     body: JSON.stringify(json),
   });
   const data = await response.json();
-  const auth = getAuth(app);
   const base64Image = data.data[0].split(",")[1];
-  if (user) {
-    checkCredit(user).then((credit) => {
-      console.log(credit);
-      updateCredit(user, credit - 1);
-    });
-    addImage(user, base64Image).then(() => {
-      console.log("Image added");
-    });
-  }
-  // await updateCredits(data.credits);
-  // console.log(base64Image)
+  checkCredit(user).then((credit) => {
+    console.log(credit);
+    updateCredit(user, credit - 1);
+  });
+  addImage(user, base64Image).then(() => {
+    console.log("Image added");
+  });
   const curr_time_since_epoch = Date.now();
   const uri = FileSystem.cacheDirectory + curr_time_since_epoch + ".jpg";
   await FileSystem.writeAsStringAsync(uri, base64Image, { encoding: "base64" });
@@ -47,7 +42,7 @@ async function loadImages(user) {
     const base64 = element.base64;
     // console.log(base64)
     const uri = FileSystem.cacheDirectory + element.timestamp + ".jpg";
-    FileSystem.writeAsStringAsync(uri, base64, { encoding: "base64" })
+    FileSystem.writeAsStringAsync(uri, base64, { encoding: "base64" });
     uris.push({ id: element.timestamp, uri: uri });
   });
   uris.reverse();

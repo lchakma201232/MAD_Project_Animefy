@@ -14,13 +14,11 @@ const Gallery = (props) => {
         setIsOpen(false);
         props.navigation.goBack();
     }
-    // const [imageIndex, setImageIndex] = React.useState(0);
     React.useEffect(() => {
         const auth = getAuth(app);
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 loadImages(user).then((res) => {
-                    // console.log(res);
                     setImages(res);
                 });
             }
