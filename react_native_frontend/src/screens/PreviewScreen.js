@@ -1,9 +1,35 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity,Button } from 'react-native'
-import React from 'react'
+import { View, Text, Image, StyleSheet, TouchableOpacity, Button } from 'react-native'
+import React,{useState} from 'react'
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
-import ImageView from "react-native-image-viewing";
+import { showImageLibrary } from '../helpers/HelperFunctions';
+import IconTray from '../components/IconTray';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
+import PlaceholderView from '../components/PlaceholderView';
+import Loader from '../components/Loader';
 const PreviewScreen = (props) => {
+    const [imageLoading, setImageLoading] = useState(false);
+    const [imagePlaceholder, setImagePlaceholder] = useState(null)
+    const navigation = useNavigation();
+    React.useEffect(() => {
+        props.navigation.setOptions({
+            title: 'Preview',
+            headerStyle: {
+                backgroundColor: '#3ca794',
+            },
+            headerTintColor: '#fff',
+            headerTitleStyle: {
+                fontWeight: 'normal',
+            },
+            headerRight: () => (
+                <View>
+                    <TouchableOpacity onPress={() => props.navigation.navigate('ImageGallery')}>
+                        <MaterialCommunityIcons name="image-multiple" size={24} color="white" style={{ marginRight: 10 }} />
+                    </TouchableOpacity>
+                </View>
+            ),
+        });
+    }, [navigation]);
     const image = props.route.params.image;
     async function saveImage() {
         if (image) {
@@ -19,18 +45,32 @@ const PreviewScreen = (props) => {
             }
         }
     }
+    async function chooseImage() {
+        const result = await showImageLibrary();
+        if (result) {
+            setImagePlaceholder(result);
+            setImageLoading(true);
+            const base64 = await FileSystem.readAsStringAsync(result, { encoding: 'base64' });
+            const url = 'https://akhaliq-animeganv2.hf.space/api/predict';
+            const uri = await Animefy(base64, url, 'version 2');
+            setImageLoading(false);
+            props.navigation.navigate('Preview', { image: uri });
+        }
+    }
+    
+
+    if (imageLoading) return (
+        <View style={styles.mainContainer}>
+            <PlaceholderView uri={imagePlaceholder} />
+            <Loader loading={true} />
+        </View>);
     return (
         <View style={styles.container2}>
             <View style={styles.container}>
-                <View style={styles.container3}>
+                {/* <View style={styles.container3}> */}
                     <Image source={{ uri: image }} style={styles.imageContainer} />
-                </View>
-                <View>
-                    <Button onPress={saveImage} title="Save Image" />
-                </View>
-                <View>
-                    <Button onPress={()=>props.navigation.navigate("ImageGallery")} title="Open Gallery" />
-                </View>
+                {/* </View> */}
+            <IconTray capture={() => props.navigation.navigate('HomeDrawer')} chooseImage={chooseImage} type="preview" saveImage={saveImage} />
             </View>
         </View>
     );
@@ -38,38 +78,36 @@ const PreviewScreen = (props) => {
 }
 const styles = StyleSheet.create({
     mainContainer: {
-        flex: 1,
+        // flex: 1,
         justifyContent: 'center',
-        // alignItems: 'center',
         backgroundColor: 'black',
 
     },
     container: {
-        // flex: 1
         justifyContent: 'center',
         alignItems: 'center',
-        // height: '100%',
-        // height: '100%',
-        width: 400,
-        height: 400,
-
-    },
-    container3: {
-        // margin: 64,
+        alignContent: 'center',
         backgroundColor: 'black',
-        justifyContent: 'center',
-        alignItems: 'center',
-        // width: 400
-        width: '100%',
+        height: 380
     },
     container2: {
-        // flex: 2,
-        flex: 1,
         justifyContent: 'center',
         alignContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: 'black',
+        height: '100%',
     },
+    container3: {
+        // flex: 1,
+        // margin: 64,,
+        backgroundColor: 'black',
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignContent: 'center',
+        // width: 400
+        width: '100%',
+    },
+    
     camera: {
         flex: 1,
     },
