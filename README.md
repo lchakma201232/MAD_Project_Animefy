@@ -17,11 +17,11 @@ Animefy is a React Native app that allows you to convert your images into anime-
 ### Installing
 1. Clone the repository to your local machine
 ```sh
-git clone https://github.com/lchakma201232/MAD_Project_Animefy
+git clone https://github.com/lchakma201232/MAD_Project_Animefy.git
 ```
 2. Navigate to the project directory
 ```sh
-cd react_native_frontend
+cd MAD_Project_Animefy/react_native_frontend
 ```
 3. Install the necessary dependencies
 ```sh
