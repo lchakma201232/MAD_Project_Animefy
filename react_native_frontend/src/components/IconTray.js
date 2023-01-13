@@ -14,6 +14,7 @@ const IconTray = (props) => {
             <TouchableOpacity style={styles.button} onPress={props.chooseImage}>
                 <MaterialCommunityIcons name="image" size={32} color="#fff" />
             </TouchableOpacity>
+            
         </View>
     )
 }
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         backgroundColor: 'transparent',
-        margin: 64,
+        margin: 20,
     },
     button: {
         flex: 1,
