@@ -15,15 +15,8 @@ const WelcomeScreen = (props) => {
       <Text style={[fontsLoaded && {fontFamily: 'Rockybilly'}, styles.titleStyle]}>Animefy</Text>
       <Image source={logo} style={styles.backgroundImage} />
       <View style={styles.buttonContainer}>
-        {/* <TouchableOpacity style={styles.buttonStyle} onPress={() => props.navigation.navigate("Login")}> */}
-            {/* <Text style={[styles.btnText,{fontSize: 20}]}>Login</Text> */}
-            {/* //white background circle with right arrow icon */}
             <Ionicons name="caret-forward" size={50} color="#3da794" 
             style={{ borderRadius: 50, padding: 10, alignSelf: 'flex-end'}} onPress={() => props.navigation.navigate("Login")}/>
-        {/* </TouchableOpacity> */}
-        {/* <TouchableOpacity style={styles.buttonStyle} onPress={() => props.navigation.navigate("SignUp")}>
-            <Text style={[styles.btnText,{fontSize: 20}]}>Sign Up</Text>
-        </TouchableOpacity> */}
       </View>
     </View>
   );

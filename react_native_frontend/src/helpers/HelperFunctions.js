@@ -7,8 +7,6 @@ import {
   getImages,
   addImage,
 } from "./AuthFunctions";
-// import app from "../configs/firebaseConfig";
-// import { getAuth, onAuthStateChanged } from "firebase/auth";
 async function Animefy(base64, url, version, user) {
   const json = {
     data: ["data:image/jpeg;base64," + base64, version],

@@ -12,7 +12,7 @@ const PreviewScreen = (props) => {
     const [imagePlaceholder, setImagePlaceholder] = useState(null)
     const navigation = useNavigation();
     React.useEffect(() => {
-        props.navigation.setOptions({
+        navigation.setOptions({
             title: 'Preview',
             headerStyle: {
                 backgroundColor: '#3ca794',
