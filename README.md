@@ -21,7 +21,7 @@ git clone https://github.com/yourusername/Animefy.git
 ```
 2. Navigate to the project directory
 ```sh
-cd Animefy
+cd react_native_frontend
 ```
 3. Install the necessary dependencies
 ```sh
@@ -37,6 +37,7 @@ react-native run-android or react-native run-ios
 ```
 
 ## Built With
+- [Firebase](https://firebase.google.com/) - The database and authentication API used
 - [React Native](https://facebook.github.io/react-native/) - The mobile framework used
 - [AnimeGANv2](https://huggingface.co/spaces/akhaliq/AnimeGANv2) - AnimeGANv2 backend for converting images
 - [react-native-image-picker](https://github.com/react-native-community/react-native-image-picker) - A React Native module that allows you to use the native UI to select a photo/video from the device library or directly from the camera
